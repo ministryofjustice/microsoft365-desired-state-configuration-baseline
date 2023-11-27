@@ -1,0 +1,84 @@
+Configuration ConfigureMicrosoft365
+{
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [PSCredential]
+        $credsGlobalAdmin
+    )
+
+    Import-DscResource -ModuleName Microsoft365DSC
+
+    node localhost
+    {
+        SPOSharingSettings 'SPOSharingSettings' {
+            BccExternalSharingInvitations              = $False;
+            DefaultLinkPermission                      = "Edit"; ### L2|This sets the default behaviour in the sharing dialogue to Edit. The user can choose to apply <strong>view only</strong> and <strong>block download</strong> controls if they wish
+            DefaultSharingLinkType                     = "Direct"; ### L2|This sets the default behaviour in the share dialogue in SharePoint and in office documents. <strong>The user can choose to share with specific people to enable ad-hoc sharing</strong>
+            EnableGuestSignInAcceleration              = $False;
+            Ensure                                     = "Present";
+            PreventExternalUsersFromResharing          = $False; ### L2|This provides a cohesive collaborative experience for guest users, however depending on organisational risk appetite, it could be turned off. When set to <strong>False</strong>, guests can only share items which they have created.
+            FolderAnonymousLinkType                    = "Edit";
+            IsSingleInstance                           = "Yes";
+            MySiteSharingCapability                    = "ExternalUserSharingOnly"; # New and existing Guests
+            NotifyOwnersWhenItemsReshared              = $True;
+            PreventExternalUsersFromResharing          = $False;
+            ProvisionSharedWithEveryoneFolder          = $False;
+            RequireAcceptingAccountMatchInvitedAccount = $True; ### L1|This ensures that only the intended party is opening the shared document.
+            SharingCapability                          = "ExternalUserSharingOnly"; # New and existing Guests
+            SharingDomainRestrictionMode               = "None"; ### L1|This enables users and guests to share with anyone from any domain.
+            ShowAllUsersClaim                          = $False;
+            ShowEveryoneClaim                          = $False;
+            ShowEveryoneExceptExternalUsersClaim       = $False;
+            ShowPeoplePickerSuggestionsForGuestUsers   = $False;
+            Credential                                 = $Credsglobaladmin
+        }
+        ### Cross Govt Collaboration Settings
+        TeamsGuestCallingConfiguration 'TeamsGuestCalling' {
+            AllowPrivateCalling = $True; ### L2|This enables guest users to make peer-to-peer calls from your tenant. 
+            Credential          = $Credsglobaladmin;
+            Identity            = "Global";
+        }
+        TeamsGuestMeetingConfiguration 'TeamsGuestMeeting' {
+            AllowIPVideo      = $True; ### L2|This enables guest users to make video calls from your tenant
+            AllowMeetNow      = $True; ### L2|This enables the “Meet Now” button to be active in Teams and facilitates collaboration.
+            Credential        = $Credsglobaladmin;
+            Identity          = "Global";
+            ScreenSharingMode = "EntireScreen"; ### L2|<strong>Entire Screen</strong> will share a whole screen, regardless of what applications are running or moved to it <strong>Single Application</strong> will just share one application.<br/><br/>The choice between these is determined by sensitivity of your environment.
+            
+        }
+        TeamsGuestMessagingConfiguration 'TeamsGuestMessaging' {
+            AllowGiphy             = $True; ### L2|Enabling this permits the use of Giphys in conversations
+            AllowImmersiveReader   = $True;
+            AllowMemes             = $True; ### L2|<strong>True</strong> – Memes can be shown, <strong>False</strong> – Memes cannot be shown
+            AllowStickers          = $True; ### L2|<strong>True</strong> – Stickers can be shown, <strong>False</strong> – Stickers cannot be shown
+            AllowUserChat          = $True; ### L2|Disabling this denies the guest from deleting the entire chat.
+            AllowUserDeleteMessage = $True; ### L2|Edit messages which have been sent. 
+            AllowUserEditMessage   = $True; ### L2|Edit messages which have been sent. 
+            Credential             = $Credsglobaladmin;
+            GiphyRatingType        = "Moderate"; ### L2|If Giphys are enabled, then enable <strong>Strict</strong> content, which will only allow family friendly giphys to be shown.
+            Identity               = "Global";
+        }
+        TeamsClientConfiguration 'TeamsClientConfiguration' {
+            AllowBox         = $False; ### L1|Unless there is a business need, you should prevent your users from uploading data to other cloud data storage services
+            AllowDropBox     = $False; ### L1|Unless there is a business need, you should prevent your users from uploading data to other cloud data storage services
+            AllowEgnyte      = $False; ### L1|Unless there is a business need, you should prevent your users from uploading data to other cloud data storage services
+            AllowGoogleDrive = $False; ### L1|Unless there is a business need, you should prevent your users from uploading data to other cloud data storage services
+            AllowShareFile   = $False; ### L1|Unless there is a business need, you should prevent your users from uploading data to other cloud data storage services
+            Credential       = $Credsglobaladmin;
+            Identity         = "Global";
+        }
+        TeamsMeetingPolicy 'TeamsMeetingPolicy-Global' {
+            AllowAnonymousUsersToStartMeeting = $False; ### L1|This ensures external participants are placed in the lobby until admitted by a presenter
+            AllowPrivateMeetNow               = $True; ### L2|This facilitates collaboration through the “Meet now” functionality and enables impromptu private meetings.
+            AllowPSTNUsersToBypassLobby       = $False; ### L1|This secures the environment, but does mean that dial in parties externally and internally will be held in the lobby.
+            AutoAdmittedUsers                 = "EveryoneInCompanyExcludingGuests"; ### L1|This ensures participants outside of the organisation are added to the lobby and must be admitted to the meeting by a presenter. This provides a level of validation that attendees are authorised by a member of the hosting organisation.
+            Credential                        = $Credsglobaladmin;
+            DesignatedPresenterRoleMode       = "EveryoneUserOverride"; ### L2|This prevents guests from having the ability to mute participants and other interactive features unless explicitly given Presenter rights during the meeting.
+            Ensure                            = "Present";
+            Identity                          = "Global";
+            LiveCaptionsEnabledType           = "DisabledUserOverride"; ### L2|This allows individual users to turn on captioning if required
+        }
+    }
+}
+
